@@ -17,7 +17,10 @@ with open("label_encoder.pkl", "rb") as f:
 
 st.title("🌿 Broadleaf Weed Prediction")
 
-file = st.file_uploader("Upload Leaf Image", type=["jpg","png","jpeg"])
+uploaded = st.file_uploader(
+    "Upload Leaf Image",
+    type=["jpg","png","jpeg","tif","tiff"]
+)
 
 if file is not None:
 
