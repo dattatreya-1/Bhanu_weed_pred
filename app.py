@@ -2,34 +2,40 @@ import streamlit as st
 import numpy as np
 import cv2
 import pickle
-from tensorflow.keras.models import load_model
+import tflite_runtime.interpreter as tflite
 
-# Load model
-model = load_model("broadleaf_cnn_model.h5")
+# load tflite model
+interpreter = tflite.Interpreter(model_path="leaf_model.tflite")
+interpreter.allocate_tensors()
 
-# Load label encoder
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+# load label encoder
 with open("label_encoder.pkl", "rb") as f:
     le = pickle.load(f)
 
-st.title("🌿 Broadleaf Classification System")
+st.title("🌿 Broadleaf Weed Prediction")
 
-uploaded_file = st.file_uploader("Upload Leaf Image", type=["jpg","png","jpeg"])
+file = st.file_uploader("Upload Leaf Image", type=["jpg","png","jpeg"])
 
-if uploaded_file is not None:
-    
-    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+if file is not None:
+
+    file_bytes = np.asarray(bytearray(file.read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, 1)
 
     st.image(img, caption="Uploaded Image", use_column_width=True)
 
-    # preprocessing
     img = cv2.resize(img, (64,64))
     img = img / 255.0
-    img = np.reshape(img, (1,64,64,3))
+    img = np.expand_dims(img, axis=0).astype(np.float32)
 
-    prediction = model.predict(img)
-    class_index = np.argmax(prediction)
+    interpreter.set_tensor(input_details[0]['index'], img)
+    interpreter.invoke()
+
+    pred = interpreter.get_tensor(output_details[0]['index'])
+    class_index = np.argmax(pred)
 
     class_name = le.inverse_transform([class_index])
 
-    st.success(f"Predicted Class : {class_name[0]}")
+    st.success(f"Prediction : {class_name[0]}")
