@@ -22,9 +22,9 @@ uploaded = st.file_uploader(
     type=["jpg","png","jpeg","tif","tiff"]
 )
 
-if file is not None:
+if uploaded is not None:
 
-    file_bytes = np.asarray(bytearray(file.read()), dtype=np.uint8)
+    file_bytes = np.asarray(bytearray(uploaded.read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, 1)
 
     st.image(img, caption="Uploaded Image", use_column_width=True)
