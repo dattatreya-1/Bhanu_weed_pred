@@ -34,8 +34,20 @@ uploaded = st.file_uploader(
 
 if uploaded is not None:
 
-    file_bytes = np.asarray(bytearray(uploaded.read()), dtype=np.uint8)
-    img = cv2.imdecode(file_bytes, 1)
+   from PIL import Image
+
+image = Image.open(uploaded)
+img = np.array(image)
+
+# if grayscale convert to RGB
+if len(img.shape) == 2:
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+# if RGBA convert to RGB
+if img.shape[2] == 4:
+    img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+
+    st.image(img, caption="Uploaded Image", use_container_width=True)
 
     st.image(img, caption="Uploaded Image", use_container_width=True)
 
