@@ -2,24 +2,34 @@ import streamlit as st
 import numpy as np
 import cv2
 import pickle
-import tflite_runtime.interpreter as tflite
+import tensorflow as tf
 
-# load tflite model
-interpreter = tflite.Interpreter(model_path="leaf_model.tflite")
-interpreter.allocate_tensors()
+# ---------- Load TFLite Model ----------
+@st.cache_resource
+def load_model():
+    interpreter = tf.lite.Interpreter(model_path="leaf_model.tflite")
+    interpreter.allocate_tensors()
+    return interpreter
+
+interpreter = load_model()
 
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
-# load label encoder
-with open("label_encoder.pkl", "rb") as f:
-    le = pickle.load(f)
+# ---------- Load Label Encoder ----------
+@st.cache_resource
+def load_encoder():
+    with open("label_encoder.pkl", "rb") as f:
+        return pickle.load(f)
 
+le = load_encoder()
+
+# ---------- UI ----------
 st.title("🌿 Broadleaf Weed Prediction")
 
 uploaded = st.file_uploader(
     "Upload Leaf Image",
-    type=["jpg","png","jpeg","tif","tiff"]
+    type=["jpg", "png", "jpeg", "tif", "tiff"]
 )
 
 if uploaded is not None:
@@ -27,12 +37,14 @@ if uploaded is not None:
     file_bytes = np.asarray(bytearray(uploaded.read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, 1)
 
-    st.image(img, caption="Uploaded Image", use_column_width=True)
+    st.image(img, caption="Uploaded Image", use_container_width=True)
 
-    img = cv2.resize(img, (64,64))
+    # ---------- Preprocessing ----------
+    img = cv2.resize(img, (64, 64))
     img = img / 255.0
     img = np.expand_dims(img, axis=0).astype(np.float32)
 
+    # ---------- Prediction ----------
     interpreter.set_tensor(input_details[0]['index'], img)
     interpreter.invoke()
 
