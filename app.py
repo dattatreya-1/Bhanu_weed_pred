@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import pickle
 import tensorflow as tf
+from PIL import Image
 
 # ---------- Load TFLite Model ----------
 @st.cache_resource
