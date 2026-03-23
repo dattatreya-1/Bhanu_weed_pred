@@ -63,7 +63,7 @@ if uploaded is not None:
         # convert RGB → BGR (important if trained using cv2)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
-        st.image(img, caption="Uploaded Image", use_container_width=True)
+        st.image(img, caption="Uploaded Image")
 
         # preprocessing
         img_resized = cv2.resize(img, (64, 64))
